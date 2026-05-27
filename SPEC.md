@@ -674,3 +674,353 @@ refactor(orders): extract payment logic to service
 | Payment provider inicial | Stripe / MercadoPago / ambos      | Determina qué adapters implementar primero           |
 | Search provider          | Algolia / Meilisearch / DB search | Cambia `product-search.service.ts`                   |
 | Dark mode                | next-themes / manual              | Afecta `layout.tsx` raíz                             |
+
+# 13. Roadmap de ejecución — desarrollo incremental por commits
+
+Este proyecto se desarrolla de forma incremental, orientado a commits pequeños, auditables y reversibles.
+
+La prioridad es:
+
+- mantener estabilidad arquitectónica
+- evitar commits gigantes
+- permitir revisión humana constante
+- facilitar trabajo con agentes IA
+- minimizar regresiones
+
+---
+
+# Filosofía de ejecución
+
+## Reglas obligatorias
+
+- Un commit = una responsabilidad clara
+- No mezclar refactors con features
+- No mezclar infraestructura con lógica de negocio
+- Toda nueva feature debe seguir el flujo de capas definido
+- Todo commit debe dejar el proyecto en estado funcional
+- Nunca romper TypeScript strict mode
+- Nunca dejar tests fallando
+- Nunca dejar imports rotos
+
+---
+
+# Orden oficial de desarrollo
+
+El proyecto debe evolucionar en este orden:
+
+```txt
+1. Infraestructura core
+2. Shared utilities
+3. Auth
+4. Products
+5. Categories
+6. Uploads
+7. Cart
+8. Checkout
+9. Orders
+10. Payments
+11. Inventory
+12. Admin panel
+13. Search
+14. Analytics
+15. Performance
+16. Multi-tenancy
+```
+
+No avanzar al siguiente módulo sin estabilizar el anterior.
+
+---
+
+# Estrategia de commits
+
+## Tamaño ideal de commit
+
+Un commit ideal:
+
+- modifica entre 3 y 15 archivos
+- tiene una sola intención
+- puede revertirse sin romper arquitectura
+- deja el proyecto compilando
+
+Evitar:
+
+- commits de 100+ archivos
+- commits mezclando múltiples features
+- refactors masivos junto a funcionalidad nueva
+
+---
+
+# Flujo oficial para crear una feature
+
+Toda feature nueva sigue este pipeline exacto:
+
+## Paso 1 — estructura
+
+Crear carpetas internas de la feature.
+
+Commit:
+
+```bash
+feat(feature-name): create feature structure
+```
+
+---
+
+## Paso 2 — tipos y schemas
+
+Crear:
+
+- types/
+- schemas/
+- validations/
+- constants/
+
+Sin lógica todavía.
+
+Commit:
+
+```bash
+feat(feature-name): add domain types and schemas
+```
+
+---
+
+## Paso 3 — repositories
+
+Crear acceso a datos.
+
+NO lógica de negocio.
+
+Commit:
+
+```bash
+feat(feature-name): add repositories
+```
+
+---
+
+## Paso 4 — mappers
+
+Transformar:
+
+- Prisma types
+- DTOs
+- domain models
+
+Commit:
+
+```bash
+feat(feature-name): add domain mappers
+```
+
+---
+
+## Paso 5 — services
+
+Agregar lógica de negocio real.
+
+Commit:
+
+```bash
+feat(feature-name): add business services
+```
+
+---
+
+## Paso 6 — queries
+
+Agregar data fetching reusable.
+
+Separar:
+
+- public/
+- admin/
+
+Commit:
+
+```bash
+feat(feature-name): add data queries
+```
+
+---
+
+## Paso 7 — actions
+
+Agregar server actions con:
+
+- next-safe-action
+- Zod schemas
+
+Commit:
+
+```bash
+feat(feature-name): add server actions
+```
+
+---
+
+## Paso 8 — UI
+
+Agregar:
+
+- components/
+- hooks/
+
+Commit:
+
+```bash
+feat(feature-name): add feature UI components
+```
+
+---
+
+## Paso 9 — tests
+
+Agregar:
+
+- unit tests
+- integration tests
+
+Commit:
+
+```bash
+test(feature-name): add feature tests
+```
+
+---
+
+# Definition of Done (DoD)
+
+Una feature se considera terminada SOLO si:
+
+- TypeScript compila sin errores
+- ESLint pasa
+- Tests pasan
+- Exports están centralizados en index.ts
+- No existen imports relativos largos
+- No existen any
+- La feature respeta boundaries arquitectónicos
+- Queries están separadas correctamente
+- Services no contienen acceso directo a UI
+- Components no contienen lógica de negocio
+- README interno de la feature actualizado (si aplica)
+
+---
+
+# Protocolo de refactors
+
+Los refactors:
+
+- NO deben mezclar funcionalidad nueva
+- deben mantener APIs públicas estables
+- deben hacerse en commits separados
+
+Formato:
+
+```bash
+refactor(scope): description
+```
+
+Ejemplo:
+
+```bash
+refactor(products): extract pricing logic into service
+```
+
+---
+
+# Protocolo para agentes IA
+
+## Antes de escribir código
+
+El agente debe:
+
+1. Leer SPEC.md
+2. Leer CLAUDE.md and AGENTS.md, .claude and .agents folders
+3. Validar arquitectura existente
+4. Revisar estructura de la feature
+5. Verificar exports públicos
+
+---
+
+## Antes de crear archivos nuevos
+
+Preguntar:
+
+- ¿ya existe esta responsabilidad?
+- ¿ya existe un service similar?
+- ¿ya existe un helper reutilizable?
+- ¿esto pertenece realmente a shared/?
+
+---
+
+## Antes de hacer commit
+
+Ejecutar obligatoriamente:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+```
+
+Si alguno falla:
+
+- NO commitear
+- corregir primero
+
+---
+
+# Reglas de crecimiento arquitectónico
+
+## No abstraer prematuramente
+
+Solo extraer:
+
+- adapters
+- services
+- helpers
+- providers
+
+cuando:
+
+- exista duplicación real
+- existan al menos 2 implementaciones
+- exista necesidad concreta
+
+---
+
+## No crear complejidad anticipada
+
+Evitar:
+
+- microservicios
+- CQRS complejo
+- event sourcing
+- workers distribuidos
+- plugin systems avanzados
+
+hasta que el proyecto realmente lo necesite.
+
+---
+
+# Objetivo de Kairo
+
+Kairo NO busca ser:
+
+- el framework más complejo
+- el más abstracto
+- el más enterprise
+
+Kairo busca ser:
+
+- pragmático
+- modular
+- reusable
+- type-safe
+- moderno
+- rápido de desarrollar
+- fácil de mantener
+- simple de extender
+
+La simplicidad pragmática tiene prioridad sobre la sofisticación arquitectónica.
